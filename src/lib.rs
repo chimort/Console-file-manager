@@ -4,39 +4,39 @@ use std::io::{self, Read, Write};
 
 
 pub struct Config {
-    goal: String,
-    initial_title: String,
-    final_title: Option<String>,
+    file_option: String,
+    first_arg: String,
+    second_arg: Option<String>,
 }
 
 impl Config {
     pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
         args.next();
 
-        let goal = match args.next() {
+        let file_option = match args.next() {
             Some(arg) => arg,
             None => return Err("Didn`t pick the option"),
         };
 
-        let initial_title = match args.next() {
+        let first_arg = match args.next() {
             Some(arg) => arg,
             None => return Err("Didn`t get first argument"),
         };
 
-        if goal == String::from("rename") || goal == String::from("write") {
-            let final_title = match args.next() {
+        if file_option == String::from("rename") || file_option == String::from("write") {
+            let second_arg = match args.next() {
                 Some(arg) => Some(arg),
                 None => return Err("Didn`t get second argument"),
             };
-            Ok(Config { goal, initial_title, final_title } )
+            Ok(Config { file_option, first_arg, second_arg } )
         }else {
-            let final_title = args.next();
-            Ok(Config { goal, initial_title, final_title } )
+            let second_arg = args.next();
+            Ok(Config { file_option, first_arg, second_arg } )
         }
     }
     
     pub fn option_checker(self) -> Result<(), io::Error> {
-        match self.goal.as_ref() {
+        match self.file_option.as_ref() {
             "rename" => rename_file(self),
             "create" => create_file(self),
             "remove" => remove_file(self),
@@ -48,8 +48,8 @@ impl Config {
 }
 
 fn rename_file(config: Config) -> io::Result<()> {
-    let initial_title = config.initial_title;
-    let final_title = config.final_title.unwrap();
+    let initial_title = config.first_arg;
+    let final_title = config.second_arg.unwrap();
 
     fs::rename(format!("{}", initial_title), format!("{}", final_title))?;
 
@@ -57,7 +57,7 @@ fn rename_file(config: Config) -> io::Result<()> {
 }
 
 fn create_file(config: Config) -> io::Result<()> {
-    let file_name = config.initial_title;
+    let file_name = config.first_arg;
 
     File::create(format!("{}", file_name))?;
 
@@ -65,14 +65,14 @@ fn create_file(config: Config) -> io::Result<()> {
 }
 
 fn remove_file(config: Config) -> io::Result<()> {
-    let file_name = config.initial_title;
+    let file_name = config.first_arg;
 
     fs::remove_file(format!("{}", file_name))?;
     Ok(())
 }
 
 fn open_file(config: Config) -> io::Result<()> {
-    let initital_name = config.initial_title;
+    let initital_name = config.first_arg;
     
     let mut file = File::open(format!("{}", initital_name))?;
     let mut contents = String::new();
@@ -84,8 +84,8 @@ fn open_file(config: Config) -> io::Result<()> {
 }
 
 fn write_to_file(config: Config) -> io::Result<()> {
-    let initial_name = config.initial_title;
-    let text = config.final_title.unwrap();
+    let initial_name = config.first_arg;
+    let text = config.second_arg.unwrap();
 
     let mut file = fs::OpenOptions::new().append(true).open(format!("{}", initial_name))?;
     file.write_all(format!("{}\n", text).as_bytes())?;
