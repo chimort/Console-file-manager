@@ -7,7 +7,7 @@ fn main() {
         process::exit(1);
     });
 
-    if let Err(e) = Config::goal_checker(config) {
+    if let Err(e) = Config::option_checker(config) {
         eprintln!("Application error: {e}");
         process::exit(1);
     }
