@@ -1,7 +1,7 @@
-use std::fs;
-use std::fs::{File, DirBuilder};
-use std::io::{self, Read, Write};
+use std::io;
 
+mod dirs;
+mod files;
 
 pub struct Config {
     file_option: String,
@@ -23,7 +23,7 @@ impl Config {
             None => return Err("Didn`t get first argument"),
         };
 
-        if file_option == String::from("rename") || file_option == String::from("write") {
+        if file_option == String::from("rename") || file_option == String::from("write") || file_option == String::from("copy") {
             let second_arg = match args.next() {
                 Some(arg) => Some(arg),
                 None => return Err("Didn`t get second argument"),
@@ -37,91 +37,16 @@ impl Config {
     
     pub fn option_checker(self) -> Result<(), io::Error> {
         match self.file_option.as_ref() {
-            "rename" => rename_file(self),
-            "create" => create_file(self),
-            "remove" => remove_file(self),
-            "open" => open_file(self),
-            "write" => write_to_file(self),
-            "cdir" => create_dir(self),
-            "rdir" => remove_dir(self),
-            "odir" => read_dir(self),
+            "rename" => files::file_func::rename_file(self),
+            "create" => files::file_func::create_file(self),
+            "remove" => files::file_func::remove_file(self),
+            "open" => files::file_func::open_file(self),
+            "write" => files::file_func::write_to_file(self),
+            "copy" => files::file_func::copy(self),
+            "cdir" => dirs::dir_funcs::create_dir(self),
+            "rdir" => dirs::dir_funcs::remove_dir(self),
+            "odir" => dirs::dir_funcs::read_dir(self),
             _ => Err(io::Error::new(io::ErrorKind::Other, "Wrong option"))
         }
     }
-}
-
-fn rename_file(config: Config) -> io::Result<()> {
-    let initial_title = config.first_arg;
-    let final_title = config.second_arg.unwrap();
-
-    fs::rename(format!("{}", initial_title), format!("{}", final_title))?;
-
-    Ok(())
-}
-
-fn create_file(config: Config) -> io::Result<()> {
-    let file_name = config.first_arg;
-
-    File::create(format!("{}", file_name))?;
-
-    Ok(())
-}
-
-fn remove_file(config: Config) -> io::Result<()> {
-    let file_name = config.first_arg;
-
-    fs::remove_file(format!("{}", file_name))?;
-    Ok(())
-}
-
-fn open_file(config: Config) -> io::Result<()> {
-    let initital_name = config.first_arg;
-    
-    let mut file = File::open(format!("{}", initital_name))?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    println!("{}", contents);
-
-    Ok(())
-}
-
-fn write_to_file(config: Config) -> io::Result<()> {
-    let initial_name = config.first_arg;
-    let text = config.second_arg.unwrap();
-
-    let mut file = fs::OpenOptions::new().append(true).open(format!("{}", initial_name))?;
-    file.write_all(format!("{}\n", text).as_bytes())?;
-
-    Ok(())
-
-}
-
-fn create_dir(config: Config) -> io::Result<()> {
-    let path = config.first_arg;
-
-    DirBuilder::new().recursive(true).create(format!("{}", path))?;
-
-    Ok(())
-}
-
-fn remove_dir(config: Config) -> io::Result<()> {
-    let dir = config.first_arg;
-
-    fs::remove_dir_all(format!("{}", dir))?;
-
-    Ok(())
-}
-
-fn read_dir(config: Config) -> io::Result<()> {
-    let path = config.first_arg;
-
-    let mut entries = fs::read_dir(format!("{}", path))?
-        .map(|res| res.map(|e| e.path()))
-        .collect::<Result<Vec<_>, io::Error>>()?;
-
-        entries.sort();
-        println!("{:?}", entries);
-
-        Ok(())
 }
