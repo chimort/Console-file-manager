@@ -1,5 +1,5 @@
 use std::fs;
-use std::fs::File;
+use std::fs::{File, DirBuilder};
 use std::io::{self, Read, Write};
 
 
@@ -42,6 +42,9 @@ impl Config {
             "remove" => remove_file(self),
             "open" => open_file(self),
             "write" => write_to_file(self),
+            "cdir" => create_dir(self),
+            "rdir" => remove_dir(self),
+            "odir" => read_dir(self),
             _ => Err(io::Error::new(io::ErrorKind::Other, "Wrong option"))
         }
     }
@@ -92,4 +95,33 @@ fn write_to_file(config: Config) -> io::Result<()> {
 
     Ok(())
 
+}
+
+fn create_dir(config: Config) -> io::Result<()> {
+    let path = config.first_arg;
+
+    DirBuilder::new().recursive(true).create(format!("{}", path))?;
+
+    Ok(())
+}
+
+fn remove_dir(config: Config) -> io::Result<()> {
+    let dir = config.first_arg;
+
+    fs::remove_dir_all(format!("{}", dir))?;
+
+    Ok(())
+}
+
+fn read_dir(config: Config) -> io::Result<()> {
+    let path = config.first_arg;
+
+    let mut entries = fs::read_dir(format!("{}", path))?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
+
+        entries.sort();
+        println!("{:?}", entries);
+
+        Ok(())
 }
