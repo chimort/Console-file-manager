@@ -18,6 +18,10 @@ impl Config {
             None => return Err("Didn`t pick the option"),
         };
 
+        if file_option == String::from("help") {
+            Config::help();
+        }
+
         let first_arg = match args.next() {
             Some(arg) => arg,
             None => return Err("Didn`t get first argument"),
@@ -46,7 +50,33 @@ impl Config {
             "cdir" => dirs::dir_funcs::create_dir(self),
             "rdir" => dirs::dir_funcs::remove_dir(self),
             "odir" => dirs::dir_funcs::read_dir(self),
-            _ => Err(io::Error::new(io::ErrorKind::Other, "Wrong option"))
+            _ => Err(io::Error::new(io::ErrorKind::Other, "Wrong option \n Try to use '-- help'"))
         }
+    }
+
+    pub fn help() {
+        println!(
+            "       
+            Commands:
+
+            Rename directory/file: -- rename old new
+
+            Create file: -- create name
+
+            Remove file: -- remove name
+
+            Open file: -- open name
+
+            Write text to the file: -- write name 'text'
+
+            Copy file: -- copy name name
+
+            Create directory: -- cdir name
+
+            Remove directory: -- rdir name
+
+            Open directory: -- odir name
+            ");
+        std::process::exit(1);
     }
 }
